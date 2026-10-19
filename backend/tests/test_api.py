@@ -151,18 +151,73 @@ class ApiTests(unittest.TestCase):
 
         self.assertEqual(response.status_code, 503)
 
+    def test_login_succeeds_with_signup_credentials_and_normalized_email(self):
+        signup = self.client.post(
+            "/auth/signup",
+            json={
+                "name": "Test User",
+                "email": "Test.Login@Example.com",
+                "password": "test-password",
+            },
+        )
+        self.assertEqual(signup.status_code, 201)
+
+        login = self.client.post(
+            "/auth/login",
+            json={
+                "email": " TEST.LOGIN@example.com ",
+                "password": "test-password",
+            },
+        )
+
+        self.assertEqual(login.status_code, 200)
+        self.assertEqual(login.json()["user"]["email"], "test.login@example.com")
+        self.assertEqual(login.json()["token_type"], "bearer")
+        self.assertTrue(login.json()["access_token"])
+
+    def test_login_rejects_an_incorrect_password(self):
+        signup = self.client.post(
+            "/auth/signup",
+            json={
+                "name": "Test User",
+                "email": "test.login@example.com",
+                "password": "test-password",
+            },
+        )
+        self.assertEqual(signup.status_code, 201)
+
+        login = self.client.post(
+            "/auth/login",
+            json={
+                "email": "test.login@example.com",
+                "password": "incorrect-password",
+            },
+        )
+
+        self.assertEqual(login.status_code, 401)
+        self.assertEqual(login.json()["detail"], "Incorrect email or password.")
+
     def test_health_returns_service_unavailable_when_database_is_down(self):
         def fail_ping(_command):
-            raise PyMongoError("MongoDB is unavailable")
+            raise PyMongoError(
+                "connection failed for "
+                "mongodb+srv://db-user:secret-password@cluster.mongodb.net"
+            )
 
         offline_client = SimpleNamespace(
             admin=SimpleNamespace(command=fail_ping)
         )
 
-        with patch.object(main, "client", offline_client):
+        with (
+            patch.object(main, "client", offline_client),
+            self.assertLogs(main.logger, level="ERROR") as logs,
+        ):
             response = self.client.get("/health")
 
         self.assertEqual(response.status_code, 503)
+        self.assertIn("PyMongoError", logs.output[0])
+        self.assertIn("<redacted MongoDB URI>", logs.output[0])
+        self.assertNotIn("secret-password", logs.output[0])
 
     def test_login_returns_service_unavailable_when_database_is_down(self):
         self.users.fail_on_find = True

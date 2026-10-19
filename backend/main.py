@@ -1,3 +1,4 @@
+import logging
 import os
 import re
 from pathlib import Path
@@ -28,6 +29,8 @@ from pymongo import MongoClient, DESCENDING
 from pymongo.errors import DuplicateKeyError, PyMongoError
 
 from pwdlib import PasswordHash
+
+logger = logging.getLogger(__name__)
 
 load_dotenv(Path(__file__).with_name(".env"))
 
@@ -146,7 +149,17 @@ def health_check():
             "status": "ok",
             "database": "connected",
         }
-    except PyMongoError:
+    except PyMongoError as exc:
+        message = re.sub(
+            r"mongodb(?:\+srv)?://[^\s\"']+",
+            "<redacted MongoDB URI>",
+            str(exc),
+        )
+        logger.error(
+            "MongoDB health check failed (%s): %s",
+            type(exc).__name__,
+            message,
+        )
         raise HTTPException(
             status_code=503,
             detail="MongoDB is unavailable. Check that the server is running.",
