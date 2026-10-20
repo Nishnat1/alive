@@ -1,5 +1,6 @@
 import { defineConfig, globalIgnores } from "eslint/config";
 import js from "@eslint/js";
+import tsParser from "@typescript-eslint/parser";
 
 const eslintConfig = defineConfig([
   js.configs.recommended,
@@ -11,8 +12,9 @@ const eslintConfig = defineConfig([
     "node_modules/**",
   ]),
   {
-    files: ["**/*.{js,mjs,cjs,jsx}"],
+    files: ["**/*.{js,mjs,cjs,jsx,ts,tsx}"],
     languageOptions: {
+      parser: tsParser,
       ecmaVersion: "latest",
       sourceType: "module",
       parserOptions: {

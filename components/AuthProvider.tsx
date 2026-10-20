@@ -152,7 +152,7 @@ export function useAuth() {
 }
 
 export function useRequireAuth() {
-  const { user, loading } = useAuth();
+  const { user, loading, logout } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
@@ -162,5 +162,5 @@ export function useRequireAuth() {
     }
   }, [user, loading, router]);
 
-  return { user, loading };
+  return { user, loading, logout };
 }

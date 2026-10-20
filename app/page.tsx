@@ -17,6 +17,7 @@ import {
   UserRound,
 } from "lucide-react";
 import { useRequireAuth } from "@/components/AuthProvider";
+import MobileNav from "@/components/MobileNav";
 import { fetchJSON, API_URL } from "@/lib/api";
 
 const activities = [
@@ -192,7 +193,7 @@ export default function HomePage() {
         </div>
       </aside>
 
-      <main id="overview" className="mx-auto max-w-7xl p-5 sm:p-8 lg:ml-64 lg:p-10">
+      <main id="overview" className="mx-auto max-w-7xl p-5 pb-28 sm:p-8 sm:pb-28 lg:ml-64 lg:p-10">
         <header className="mb-9 flex items-center justify-between gap-4">
           <div className="min-w-0">
             <p className="text-sm text-slate-500">YOUR FITNESS DASHBOARD</p>
@@ -352,6 +353,7 @@ export default function HomePage() {
           alive · Built for your everyday progress
         </footer>
       </main>
+      <MobileNav />
     </div>
   );
 }

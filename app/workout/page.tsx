@@ -49,10 +49,15 @@ const MAX_SPEED_MPS = {
   Cycling: 25,
 };
 
+type RoutePoint = [number, number];
+
 const MIN_MOVE_METERS = 2;
 const ACCEPTABLE_ACCURACY_METERS = 30;
 
-function distanceInMeters([lat1, lon1], [lat2, lon2]) {
+function distanceInMeters(
+  [lat1, lon1]: RoutePoint,
+  [lat2, lon2]: RoutePoint
+) {
   const toRadians = (degrees) => (degrees * Math.PI) / 180;
   const earthRadius = 6371000;
   const dLat = toRadians(lat2 - lat1);
@@ -92,7 +97,7 @@ export default function WorkoutPage() {
   const [activity, setActivity] = useState("Running");
   const [status, setStatus] = useState("idle");
   const [elapsedMs, setElapsedMs] = useState(0);
-  const [routePoints, setRoutePoints] = useState([]);
+  const [routePoints, setRoutePoints] = useState<RoutePoint[]>([]);
   const [distanceMeters, setDistanceMeters] = useState(0);
   const [currentSpeed, setCurrentSpeed] = useState(0);
   const [gpsStatus, setGpsStatus] = useState(
@@ -102,14 +107,17 @@ export default function WorkoutPage() {
   const [saveMessage, setSaveMessage] = useState("");
   const [isSaving, setIsSaving] = useState(false);
 
-  const routePointsRef = useRef([]);
-  const lastAcceptedFixRef = useRef(null);
+  const routePointsRef = useRef<RoutePoint[]>([]);
+  const lastAcceptedFixRef = useRef<{
+    point: RoutePoint;
+    timestamp: number;
+  } | null>(null);
   const lastProcessedLocationRef = useRef(null);
   const elapsedBeforeRunRef = useRef(0);
   const runStartedAtRef = useRef(null);
   const smoothedLatRef = useRef(null);
   const smoothedLngRef = useRef(null);
-  const mapCenter = useMemo(
+  const mapCenter = useMemo<[number, number] | null>(
     () => (location ? [location.latitude, location.longitude] : null),
     [location]
   );
@@ -162,7 +170,10 @@ export default function WorkoutPage() {
         alpha * longitude + (1 - alpha) * smoothedLngRef.current;
     }
 
-    const point = [smoothedLatRef.current, smoothedLngRef.current];
+    const point: RoutePoint = [
+      smoothedLatRef.current,
+      smoothedLngRef.current,
+    ];
     if (status !== "running") {
       if (!locationError) {
         setGpsStatus(
@@ -348,8 +359,6 @@ export default function WorkoutPage() {
     setActivity(name);
   }
 
-  const ActivityIcon =
-    activities.find((item) => item.name === activity)?.Icon || Activity;
   const isActive = status === "running" || status === "paused";
   const statusLabel = {
     idle: "Ready to start",
