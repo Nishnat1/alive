@@ -36,7 +36,7 @@ load_dotenv(Path(__file__).with_name(".env"))
 
 MONGODB_URI = os.getenv(
     "MONGODB_URI",
-    "mongodb://127.0.0.1:27017/",
+    # "mongodb://127.0.0.1:27017/",
 )
 MONGODB_DATABASE = os.getenv("MONGODB_DATABASE", "fittrack")
 

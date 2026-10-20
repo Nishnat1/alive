@@ -35,7 +35,7 @@ test("fetchJSON adds bearer auth without forcing a content type on GET", async (
     return new Response(JSON.stringify({ workouts: [] }), { status: 200 });
   };
 
-  const { data } = await fetchJSON("http://localhost:8000/workouts");
+  const { data } = await fetchJSON("https://fittrack-backend-urcn.onrender.com/workouts");
 
   assert.deepEqual(data, { workouts: [] });
   assert.equal(requestOptions.headers.get("Authorization"), "Bearer test-token");
@@ -49,7 +49,7 @@ test("fetchJSON sets JSON content type for request bodies", async () => {
     return new Response("{}", { status: 201 });
   };
 
-  await fetchJSON("http://localhost:8000/auth/login", {
+  await fetchJSON("https://fittrack-backend-urcn.onrender.com/auth/login", {
     method: "POST",
     body: JSON.stringify({ email: "test@example.com" }),
   });
@@ -64,7 +64,7 @@ test("fetchJSON preserves a caller-provided authorization header", async () => {
     return new Response("{}", { status: 200 });
   };
 
-  await fetchJSON("http://localhost:8000/resource", {
+  await fetchJSON("https://fittrack-backend-urcn.onrender.com/resource", {
     headers: new Headers({ authorization: "Custom credential" }),
   });
 
@@ -81,7 +81,7 @@ test("fetchJSON exposes API detail and status on failed responses", async () => 
       headers: { "Content-Type": "application/json" },
     });
 
-  await assert.rejects(fetchJSON("http://localhost:8000/workouts"), (error) => {
+  await assert.rejects(fetchJSON("https://fittrack-backend-urcn.onrender.com/workouts"), (error) => {
     assert.equal(error.message, "Invalid request");
     assert.equal(error.status, 422);
     return true;
