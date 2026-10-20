@@ -220,14 +220,25 @@ class ApiTests(unittest.TestCase):
         self.assertNotIn("secret-password", logs.output[0])
 
     def test_login_returns_service_unavailable_when_database_is_down(self):
-        self.users.fail_on_find = True
-
-        response = self.client.post(
-            "/auth/login",
-            json={"email": "test@example.com", "password": "test-password"},
-        )
+        with (
+            patch.object(
+                self.users,
+                "find_one",
+                side_effect=PyMongoError(
+                    "failed to connect to "
+                    "mongodb+srv://db-user:secret-password@cluster.mongodb.net"
+                ),
+            ),
+            self.assertLogs(main.logger, level="ERROR") as logs,
+        ):
+            response = self.client.post(
+                "/auth/login",
+                json={"email": "test@example.com", "password": "test-password"},
+            )
 
         self.assertEqual(response.status_code, 503)
+        self.assertIn("<redacted MongoDB URI>", logs.output[0])
+        self.assertNotIn("secret-password", logs.output[0])
 
     def test_authenticated_request_returns_service_unavailable_when_database_is_down(
         self,
